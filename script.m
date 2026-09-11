@@ -1,11 +1,11 @@
 % visualization script
 % TODO: drop unused columns
 
-file_dir = "C:\Users\netos\OneDrive\Documents\BME_project\"; % windows
+file_dir = "C:\Users\netos\OneDrive\Documents\BME_Msc_Project\"; % windows
 %filename = "20240909_1_mreg_fa25_abdominal_1.lvm";
 filenames = ["20240909_1_mreg_fa25_abdominal_1.lvm", ...
             "20240909_1_mreg_fa25_abdominal_2.lvm"];
-path = fullfile(file_dir, filename);
+%path = fullfile(file_dir, filename);
 
 function data = extract_table_from_lvm(path)
 
@@ -29,6 +29,8 @@ end
 
 % create an empty table for storing the data from all files
 %n = 2;
+table_data = table();
+transition_points = zeros(length(filenames), 1);
 %table_data = table( ...
 %    'Size', [0, n], ...
 %    'VariableTypes', {'double', 'double', 'double', 'double', 'double', 'double'}, ...
@@ -36,44 +38,64 @@ end
 %);
 
 for file_index = 1:length(filenames)
+    
     file = filenames(file_index);
+    fprintf("Processing file %s...\n", file);
+
     path = fullfile(file_dir, file);
     data = extract_table_from_lvm(path);
 
     table_data = [table_data; data]; % append the data to the table
 
-    % separating variables for plotting
-    time = data.Time;
-    channel_1 = data.Channel_1;
-    channel_2 = data.Channel_2;
-    channel_3 = data.Channel_3_noise;
-    channel_4 = data.Channel_4_voltage;
-
-    % plotting in a 4x4 grid
-    figure;
-    tiledlayout(2, 2);
-
-    nexttile;
-    plot(time, channel_1);
-    title('Channel 1');
-    xlabel('Time');
-    ylabel('Amplitude');
-
-    nexttile;
-    plot(time, channel_2);
-    title('Channel 2');
-    xlabel('Time');
-    ylabel('Amplitude');
-
-    nexttile;
-    plot(time, channel_3);
-    title('Channel 3 (Noise)');
-    xlabel('Time');
-    ylabel('Amplitude');
-
-    nexttile;
-    plot(time, channel_4);
-    title('Channel 4 (Voltage)');
-    xlabel('Time');
-    ylabel('Amplitude');
+    transition_points(file_index) = height(table_data); % store the transition point
 end
+
+% separating variables for plotting
+time = table_data.Time;
+channel_1 = table_data.Channel_1;
+channel_2 = table_data.Channel_2;
+channel_3 = table_data.Channel_3_noise;
+channel_4 = table_data.Channel_4_voltage;
+
+
+% plotting in a 4x4 grid
+figure;
+tiledlayout(2, 2);
+
+nexttile;
+plot(time, channel_1);
+title('Channel 1');
+xlabel('Time');
+ylabel('Amplitude');
+
+% annotate transition points
+hold on;
+for i = 1:length(transition_points)
+    xline(time(transition_points(i)), 'r--', sprintf('File %d', i), 'LabelVerticalAlignment', 'bottom');
+end
+hold off;
+
+nexttile;
+plot(time, channel_2);
+title('Channel 2');
+xlabel('Time');
+ylabel('Amplitude');
+
+% annotate transition points
+hold on;
+for i = 1:length(transition_points)
+    xline(time(transition_points(i)), 'r--', sprintf('File %d', i), 'LabelVerticalAlignment', 'bottom');
+end
+hold off;
+
+nexttile;
+plot(time, channel_3);
+title('Channel 3 (Noise)');
+xlabel('Time');
+ylabel('Amplitude');
+
+nexttile;
+plot(time, channel_4);
+title('Channel 4 (Voltage)');
+xlabel('Time');
+ylabel('Amplitude');
