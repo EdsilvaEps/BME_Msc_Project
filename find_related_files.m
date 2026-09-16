@@ -1,9 +1,9 @@
 %  function that allows for aggregation of .lvm files
-function groups = find_related_files(input_path)
+function [groups, base_name] = find_related_files(input_path)
 
     if isfile(input_path)
         [folder, name, ext] = fileparts(input_path);
-        disp([folder, name, ext])
+        %disp([folder, name, ext])
 
         if ~strcmpi(ext, '.lvm')
             error('Input file must be .lvm');
@@ -20,5 +20,5 @@ function groups = find_related_files(input_path)
         % create a list of files related to the one which was input
         files = dir(fullfile(folder, [base_name '_*.lvm']));
         groups = string({files.name}');
-        % disp(files);
+        fprintf("Found %d files associated with %s:\n", length(groups), base_name);
     end

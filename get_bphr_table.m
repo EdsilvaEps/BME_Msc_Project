@@ -1,7 +1,10 @@
 % get the BPHR reference 
 
-function BPHR_table = get_bphr_table(bphr_path)
+function BPHR_table = get_bphr_table(file_dir, file)
     % TODO: verify for missing values
+
+    bphr_path = fullfile(file_dir, file);
+    fprintf("Processing file %s...\n", file);
     
     BPHR_table = readtable(bphr_path, "FileType", "text", ...
                     "Delimiter", "\t", ...
