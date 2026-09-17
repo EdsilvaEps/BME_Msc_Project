@@ -1,14 +1,27 @@
 % function that plots both nibp data and bphr reference
-function plot_nibp_data(nibp_data, bphr_data ,transition_points, plot_name)
+function plot_nibp_data(nibp_data, bphr_data ,transition_points, plot_name, interval)
     arguments
         nibp_data
         bphr_data = table()
         transition_points = []
         plot_name = ''
+        interval (1,2) double = [0 0] % optional time interval for plotting;
     end
 
 
     % separating variables for plotting
+    % if interval is provided, filter the data accordingly
+    if interval(2) ~= 0
+        nibp_data = nibp_data(nibp_data.Time >= interval(1) & nibp_data.Time <= interval(2), :);
+        if ~isempty(bphr_data)
+            bphr_data = bphr_data(bphr_data.Time >= interval(1) & bphr_data.Time <= interval(2), :);
+        end
+
+        % if using intervals, we dont use transition points
+        transition_points = [];
+
+    end
+
     time = nibp_data.Time;
     channel_1 = nibp_data.Channel_1;
     channel_2 = nibp_data.Channel_2;
@@ -21,6 +34,8 @@ function plot_nibp_data(nibp_data, bphr_data ,transition_points, plot_name)
         mock_y_axis = zeros(size(time)); % create a mock y-axis for plotting
         channel_1_bphr = bphr_data.Channel_1_HR;
         channel_2_bphr = bphr_data.Channel_2_HR;
+    else
+        disp("bphr data not found or interval too small for reference visualization")
     end
 
     % plotting
@@ -85,9 +100,12 @@ function plot_nibp_data(nibp_data, bphr_data ,transition_points, plot_name)
     end
 
     if ~isempty(plot_name)
-        sgt = sgtitle(plot_name);
+        sgt = sgtitle(plot_name, 'Interpreter', 'none');
     else
         sgt = sgtitle('NIBP Data and BPHR Reference');
     end
     sgt.FontSize = 20;
+
+    % automatically save plot to png
+    exportgraphics(gcf, strcat(plot_name,'.png'));
 end
