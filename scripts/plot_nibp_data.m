@@ -1,3 +1,5 @@
+
+
 % function that plots both nibp data and bphr reference
 function plot_nibp_data(nibp_data, bphr_data ,transition_points, plot_name, interval)
     arguments
@@ -7,6 +9,8 @@ function plot_nibp_data(nibp_data, bphr_data ,transition_points, plot_name, inte
         plot_name = ''
         interval (1,2) double = [0 0] % optional time interval for plotting;
     end
+
+    plot_save_dir = "C:\Users\netos\OneDrive\Documents\BME_Msc_Project\plots\";
 
 
     % separating variables for plotting
@@ -38,7 +42,25 @@ function plot_nibp_data(nibp_data, bphr_data ,transition_points, plot_name, inte
         disp("bphr data not found or interval too small for reference visualization")
     end
 
-    % plotting
+    % overlapping channels 1 and 2 
+    figure;
+    plot(time, channel_1, 'Color', 'b', 'Linewidth', 1.5);
+    hold on;
+    plot(time, channel_2, 'Color', 'r', 'Linewidth', 1.5);
+    hold off;
+    legend("Carotid Artery", "Chest");
+
+    grid on;
+
+    if ~isempty(plot_name)
+        sgt = sgtitle(plot_name, 'Interpreter', 'none');
+    else
+        sgt = sgtitle('NIBP Superimposed data');
+    end
+    sgt.FontSize = 20;
+
+
+    % plotting everything in different graphs
     figure;
     
     %layout depends on whether bphr_data is provided
@@ -50,7 +72,7 @@ function plot_nibp_data(nibp_data, bphr_data ,transition_points, plot_name, inte
 
     nexttile;
     plot(time, channel_1);
-    title('Channel 1 - Raw Data');
+    title('Carotid Artery - Raw Data');
     xlabel('Time');
     ylabel('Amplitude');
 
@@ -65,7 +87,7 @@ function plot_nibp_data(nibp_data, bphr_data ,transition_points, plot_name, inte
 
     nexttile;
     plot(time, channel_2);
-    title('Channel 2 - Raw Data');
+    title('Chest - Raw Data');
     xlabel('Time');
     ylabel('Amplitude');
 
@@ -107,5 +129,5 @@ function plot_nibp_data(nibp_data, bphr_data ,transition_points, plot_name, inte
     sgt.FontSize = 20;
 
     % automatically save plot to png
-    exportgraphics(gcf, strcat(plot_name,'.png'));
+    exportgraphics(gcf, strcat(plot_save_dir, plot_name,'.png'));
 end
