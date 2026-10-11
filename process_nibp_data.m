@@ -94,7 +94,7 @@ function [nibp_table] = processing_pipeline(input_path, interval)
     % apply hilbert envelope for generalization of curve
     envelope = apply_envelope(nibp_table, interval);
 
-    apply_cross_correlation(envelope);
+    apply_cross_correlation(nibp_table, envelope, interval);
 
 
     % plot everything
