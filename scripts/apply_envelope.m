@@ -29,8 +29,8 @@ function [envelope] = apply_envelope(signal, interval)
 
     % comparing different approaches:
     % 1st - calculate the gradients in the envelop as the points of most inflection, then use these points to find the peaks in the original signal
-    d1 = gradient(env_1)
-    d2 = gradient(env_2)
+    d1 = gradient(env_1);
+    d2 = gradient(env_2);
 
     [~, idx1] = max(-d1);
     [~, idx2] = max(-d2);

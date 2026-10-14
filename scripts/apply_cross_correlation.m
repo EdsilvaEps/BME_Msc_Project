@@ -46,11 +46,11 @@ function apply_cross_correlation(nibp_table, envelope, interval)
     n = min(numel(time), numel(original_ch_1_shifted));
 
     figure;
-    plot(time, signal_ch_1_shifted, 'b', 'DisplayName', 'Channel 1 (Shifted)');
+    plot(time, signal_ch_1_shifted, 'y', 'DisplayName', 'Channel 1 (Shifted)');
     hold on;
-    plot(time, signal_ch_2, 'r', 'DisplayName', 'Channel 2');
-    plot(time(1:n), original_ch_1_shifted(1:n), 'g');
-    plot(time(1:n), original_ch_2(1:n), 'y');
+    plot(time, signal_ch_2, 'g', 'DisplayName', 'Channel 2');
+    plot(time(1:n), original_ch_1_shifted(1:n), 'b');
+    plot(time(1:n), original_ch_2(1:n), 'r');
 
     hold off;
     legend('Envelope 1 Shifted', 'Envelope 2', 'Channel 1 Shifted', 'Channel 2');

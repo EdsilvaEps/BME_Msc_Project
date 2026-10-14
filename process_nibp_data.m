@@ -89,12 +89,14 @@ function [nibp_table] = processing_pipeline(input_path, interval)
     plot_power_spectrum(nibp_table);
 
     % apply findpeaks to filtered data
-    [peak_times, peak_indices, widths, prominences] = apply_findpeaks(nibp_table, new_fs, interval);
+    apply_findpeaks(nibp_table, new_fs, interval);
+
+    % apply improved findpeaks algorithm
+    apply_findpeaks_2(nibp_table, new_fs, interval);
 
     % apply hilbert envelope for generalization of curve
-    envelope = apply_envelope(nibp_table, interval);
-
-    apply_cross_correlation(nibp_table, envelope, interval);
+    %envelope = apply_envelope(nibp_table, interval);
+    %apply_cross_correlation(nibp_table, envelope, interval);
 
 
     % plot everything
