@@ -1,8 +1,9 @@
-function [nibp_table] = process_nibp_data(input_path, interval)
+function [nibp_table] = process_nibp_data(input_path, interval, random_interval_size)
 
     arguments
         input_path (1,:) char  % path to a single .lvm file or a folder containing .lvm files
         interval (1,2) double = [0 0] % optional time interval for plotting
+        random_interval_size uint32 = 3 % optional size of random interval sample for verification
     end
 
     % add scripts folder from relative path
@@ -23,7 +24,7 @@ function [nibp_table] = process_nibp_data(input_path, interval)
     if isfile(input_path)
         disp("single file given, processing...")
 
-        nibp_table = processing_pipeline(input_path, interval);
+        nibp_table = processing_pipeline(input_path, interval, random_interval_size);
 
     elseif isfolder(input_path)
         disp("processing whole folder")
@@ -46,7 +47,7 @@ function [nibp_table] = process_nibp_data(input_path, interval)
                     filename = strcat(folder_name, file_types(k), '1.lvm');
                     disp(filename)
 
-                    processing_pipeline(fullfile(input_path, filename), interval);
+                    processing_pipeline(fullfile(input_path, filename), interval, random_interval_size);
 
                     % move on to the next file type at first finding
                     break;
@@ -61,7 +62,7 @@ function [nibp_table] = process_nibp_data(input_path, interval)
 
 end
 
-function [nibp_table] = processing_pipeline(input_path, interval) 
+function [nibp_table] = processing_pipeline(input_path, interval, random_interval_size) 
 
      % get base folder
     [folder, ~, ~] = fileparts(input_path); 
@@ -73,26 +74,26 @@ function [nibp_table] = processing_pipeline(input_path, interval)
     bphr_table = get_bphr_table(folder, files(end));
 
     % concatenate raw data files (reference file is the last one)
-    [nibp_table, transition_pts] = concatenate_nibp_data(folder, files(1:end-1));
+    [nibp_table, ~] = concatenate_nibp_data(folder, files(1:end-1));
     
     % resample data to improve filtering
     new_fs = 500;
     nibp_table = resample_nibp_data(nibp_table, new_fs);
 
     % plot power spectral density before filtering
-    plot_power_spectrum(nibp_table); % TODO: apply also STFT for time-frequency plot
+    %plot_power_spectrum(nibp_table); % TODO: apply also STFT for time-frequency plot
 
     % apply butterworth filter to nipb data
     nibp_table = apply_butterworth_filter(nibp_table);
 
     % plot power spectral density after filtering
-    plot_power_spectrum(nibp_table);
+    %plot_power_spectrum(nibp_table);
 
     % apply findpeaks to filtered data
-    apply_findpeaks(nibp_table, new_fs, interval);
+    %apply_findpeaks(nibp_table, new_fs, interval);
 
     % apply improved findpeaks algorithm
-    apply_findpeaks_2(nibp_table, new_fs, interval);
+    %apply_findpeaks_2(nibp_table, new_fs, interval);
 
     % apply hilbert envelope for generalization of curve
     %envelope = apply_envelope(nibp_table, interval);
@@ -105,5 +106,9 @@ function [nibp_table] = processing_pipeline(input_path, interval)
                    [], ...% transition_pts, - resampled data loses transition points location
                    base_name, ...
                    interval);
+
+    plot_peak_data(nibp_table, ...
+                   new_fs, ...
+                   random_interval_size);
 
 end 

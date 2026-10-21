@@ -1,4 +1,4 @@
-function apply_findpeaks_2(nibp_data, fs, interval)
+function peak_data = apply_findpeaks_2(nibp_data, fs, interval)
 
     arguments
         nibp_data
@@ -55,8 +55,8 @@ function apply_findpeaks_2(nibp_data, fs, interval)
     
     end
 
-    disp("detected clusters:")
-    clusters
+    %disp("detected clusters:")
+    %clusters
 
 
     % selecting the most prominent chest peaks for
@@ -72,7 +72,7 @@ function apply_findpeaks_2(nibp_data, fs, interval)
 
         % store the absolute location of the peak 
         chest_beats(c) = locs_chest(cluster(max_idx));
-        fprintf("Chest peak at: %.6f s\n", time_axis(chest_beats(c)));
+        %fprintf("Chest peak at: %.6f s\n", time_axis(chest_beats(c)));
 
     end 
 
@@ -84,8 +84,9 @@ function apply_findpeaks_2(nibp_data, fs, interval)
     min_delay = round(0.02*fs);
     max_delay = round(0.06*fs);
 
+    valid_chest_beats = [];
     carotid_beats = [];
-    delays = [];
+    delays = []; % delays between chest and carotid peaks
     % find equivalent carotid signal peaks
     % and compute delay
     for n = 1:length(chest_beats)
@@ -99,7 +100,7 @@ function apply_findpeaks_2(nibp_data, fs, interval)
             break
         end
 
-        fprintf("Looking for carotid peaks between %f s and %f s \n", time_axis(start_idx), time_axis(end_idx));
+        %fprintf("Looking for carotid peaks between %f s and %f s \n", time_axis(start_idx), time_axis(end_idx));
 
         % adaptive search interval
         while(found_carotid_peaks == false && end_idx < length(time_axis))
@@ -113,16 +114,16 @@ function apply_findpeaks_2(nibp_data, fs, interval)
             if isempty(locs_car)
                 % expand search interval by 10ms
                 end_idx = end_idx + round(0.01*fs);
-                fprintf("Not found, searching between %f s and %f s \n", time_axis(start_idx), time_axis(end_idx));
+                %fprintf("Not found, searching between %f s and %f s \n", time_axis(start_idx), time_axis(end_idx));
             else
-                fprintf("found carotid peak at %f\n", time_axis(locs_car(1)));
+                %fprintf("found carotid peak at %f\n", time_axis(locs_car(1)));
                 found_carotid_peaks = true;
             end
 
             % carotid peak should not be over 200ms away from chest peak
             if(end_idx - start_idx) > round(0.2*fs)
                 i = end_idx - start_idx;
-                fprintf("Interval too large: %f s \n", i/fs);
+                %fprintf("Interval too large: %f s \n", i/fs);
                 break
             end
 
@@ -136,19 +137,36 @@ function apply_findpeaks_2(nibp_data, fs, interval)
         [~, idx] = max(pks_car); % highest peak in the region
         % convert peak to absolute index and compute delay
         absolute_car = start_idx + locs_car(idx) - 1;
+
+        valid_chest_beats(end+1) = chest_beats(n); 
         carotid_beats(n) = absolute_car;
+        
         delays(n) = (carotid_beats(n) - chest_beats(n))/fs;
 
     end
 
+    % eliminate chest beats without pair
+    chest_beats = valid_chest_beats;
+
     carotid_beats = carotid_beats(isfinite(carotid_beats) & carotid_beats>0);
     carotid_beats = round(carotid_beats);
 
-    disp("apply_findpeaks__2 info: ");
+    % bundle findings into structure
+    peak_data = struct();
+    peak_data.time = time_axis;
+    peak_data.chest_beats = chest_beats;
+    peak_data.carotid_beats = carotid_beats;
+    peak_data.delays = delays;
+    peak_data.all_candidate_chest = locs_chest;
+    peak_data.mean_delay = mean(delays);
+    peak_data.std_delay = std(delays);
+    peak_data.var_delay = var(delays);
+
+    %disp("apply_findpeaks__2 info: ");
     %delays
-    fprintf('Mean delay: %f s \n', mean(delays));
-    fprintf('delay std: %f s \n', std(delays));
-    fprintf('delay variance: %f s \n', var(delays));
+    %fprintf('Mean delay: %f s \n', mean(delays));
+    %fprintf('delay std: %f s \n', std(delays));
+    %fprintf('delay variance: %f s \n', var(delays));
 
     figure;
     plot(time_axis, carotid_signal);
