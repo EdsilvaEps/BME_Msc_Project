@@ -21,6 +21,7 @@ function plot_peak_data(nibp_data, fs, random_interval_size)
     mean_delay = peak_data.mean_delay;
     std_delay = peak_data.std_delay;
     var_delay = peak_data.var_delay;
+    median_delay = peak_data.median_delay;
 
     if random_interval_size == 0
         random_interval_size = 3;
@@ -75,9 +76,25 @@ function plot_peak_data(nibp_data, fs, random_interval_size)
     xlabel('Time (s)');
     ylabel('Signal Amplitude');
 
+    % quality analysis (TODO: move it to another function)
+    percent_of_valid_beats = (length(chest_beats) / length(peak_data.all_chest_beats)) ...
+                                * 100 ;
+
     fprintf('Mean delay: %f s \n', mean_delay);
+    fprintf('Median delay: %f s \n', median_delay);
     fprintf('delay std: %f s \n', std_delay);
     fprintf('delay variance: %f s \n', var_delay);
+    fprintf('proportion of valid identified beats: %.2f%% \n', percent_of_valid_beats);
+
+    figure
+
+    tiledlayout(2,1);
+
+    nexttile;
+    histogram(peak_data.delays);
+    title("Distribution of delay across signal");
+    xlabel("delay in secs");
+    ylabel("Number of beats");
 
 
 end

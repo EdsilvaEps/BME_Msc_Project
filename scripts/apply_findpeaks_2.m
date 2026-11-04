@@ -145,7 +145,8 @@ function peak_data = apply_findpeaks_2(nibp_data, fs, interval)
 
     end
 
-    % eliminate chest beats without pair
+    % archive all acquired chest beats and separate them from valid chest beats (those with equivalent carotid beats)
+    all_chest_beats = chest_beats;
     chest_beats = valid_chest_beats;
 
     carotid_beats = carotid_beats(isfinite(carotid_beats) & carotid_beats>0);
@@ -153,36 +154,20 @@ function peak_data = apply_findpeaks_2(nibp_data, fs, interval)
 
     % bundle findings into structure
     peak_data = struct();
-    peak_data.time = time_axis;
-    peak_data.chest_beats = chest_beats;
-    peak_data.carotid_beats = carotid_beats;
-    peak_data.delays = delays;
-    peak_data.all_candidate_chest = locs_chest;
+    peak_data.time = time_axis; % time axis used for analysis, taking into account resampling
+    peak_data.all_chest_beats = all_chest_beats; % all chest beats, including the invalid ones
+    peak_data.chest_beats = chest_beats; % location of chest beats in graph
+    peak_data.carotid_beats = carotid_beats; % location carotid beats in graph
+    peak_data.delays = delays; % valid transit time delays in s
+    peak_data.all_candidate_chest = locs_chest; % all chest location for visualization of candidates
     peak_data.mean_delay = mean(delays);
     peak_data.std_delay = std(delays);
     peak_data.var_delay = var(delays);
+    peak_data.median_delay = median(delays);
 
     %disp("apply_findpeaks__2 info: ");
     %delays
     %fprintf('Mean delay: %f s \n', mean(delays));
     %fprintf('delay std: %f s \n', std(delays));
     %fprintf('delay variance: %f s \n', var(delays));
-
-    figure;
-    plot(time_axis, carotid_signal);
-
-    hold on;
-    plot(time_axis(carotid_beats), carotid_signal(carotid_beats), 'ro', 'MarkerFaceColor', 'r');
-
-    plot(time_axis, chest_signal);
-    plot(time_axis(chest_beats), chest_signal(chest_beats), 'ro', 'MarkerFaceColor', 'r');
-
-    plot(time_axis(locs_chest), chest_signal(locs_chest), 'rx');
-    
-    hold off;
-
-    title('Detected Peaks-2');
-    xlabel('Time (s)');
-    ylabel('Amplitude');
-
 end

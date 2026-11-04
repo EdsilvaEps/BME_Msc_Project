@@ -93,12 +93,11 @@ function [nibp_table] = processing_pipeline(input_path, interval, random_interva
     %apply_findpeaks(nibp_table, new_fs, interval);
 
     % apply improved findpeaks algorithm
-    %apply_findpeaks_2(nibp_table, new_fs, interval);
+    peak_data = apply_findpeaks_2(nibp_table, new_fs, interval);
 
     % apply hilbert envelope for generalization of curve
     %envelope = apply_envelope(nibp_table, interval);
     %apply_cross_correlation(nibp_table, envelope, interval);
-
 
     % plot everything
     plot_nibp_data(nibp_table, ...
@@ -110,5 +109,8 @@ function [nibp_table] = processing_pipeline(input_path, interval, random_interva
     plot_peak_data(nibp_table, ...
                    new_fs, ...
                    random_interval_size);
+
+
+    template_correlation(nibp_table, new_fs, peak_data);
 
 end 
