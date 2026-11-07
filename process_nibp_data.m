@@ -1,4 +1,4 @@
-function [nibp_table] = process_nibp_data(input_path, interval, random_interval_size)
+function [output] = process_nibp_data(input_path, interval, random_interval_size)
 
     arguments
         input_path (1,:) char  % path to a single .lvm file or a folder containing .lvm files
@@ -24,7 +24,7 @@ function [nibp_table] = process_nibp_data(input_path, interval, random_interval_
     if isfile(input_path)
         disp("single file given, processing...")
 
-        nibp_table = processing_pipeline(input_path, interval, random_interval_size);
+        output = processing_pipeline(input_path, interval, random_interval_size);
 
     elseif isfolder(input_path)
         disp("processing whole folder")
@@ -62,7 +62,7 @@ function [nibp_table] = process_nibp_data(input_path, interval, random_interval_
 
 end
 
-function [nibp_table] = processing_pipeline(input_path, interval, random_interval_size) 
+function [output] = processing_pipeline(input_path, interval, random_interval_size) 
 
      % get base folder
     [folder, ~, ~] = fileparts(input_path); 
@@ -112,5 +112,7 @@ function [nibp_table] = processing_pipeline(input_path, interval, random_interva
 
 
     template_correlation(nibp_table, new_fs, peak_data);
+
+    output = peak_data; % output for analysis
 
 end 
