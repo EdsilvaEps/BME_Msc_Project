@@ -1,17 +1,22 @@
 
 
 % function that plots both nibp data and bphr reference
-function plot_nibp_data(nibp_data, bphr_data ,transition_points, plot_name, interval)
+function plot_nibp_data(nibp_data, bphr_data ,transition_points, plot_name, interval, dest)
     arguments
         nibp_data
         bphr_data = table()
         transition_points = []
         plot_name = ''
         interval (1,2) double = [0 0] % optional time interval for plotting;
+        dest = '' % location where plots are saved to
     end
 
-    plot_save_dir = "C:\Users\netos\OneDrive\Documents\BME_Msc_Project\plots\";
-
+    if ~isempty(dest)
+        plot_save_dir = dest;
+    else
+        plot_save_dir = "C:\Users\netos\OneDrive\Documents\BME_Msc_Project\plots\";
+        
+    end
 
     % separating variables for plotting
     % if interval is provided, filter the data accordingly
@@ -129,5 +134,6 @@ function plot_nibp_data(nibp_data, bphr_data ,transition_points, plot_name, inte
     sgt.FontSize = 20;
 
     % automatically save plot to png
-    exportgraphics(gcf, strcat(plot_save_dir, plot_name,'.png'));
+    %exportgraphics(gcf, strcat(plot_save_dir, plot_name,'.png'));
+    exportgraphics(gcf, [plot_save_dir plot_name '_nibp_data.png']);
 end

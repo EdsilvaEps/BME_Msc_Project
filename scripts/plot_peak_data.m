@@ -1,9 +1,11 @@
-function plot_peak_data(nibp_data, fs, random_interval_size)
+function plot_peak_data(nibp_data, fs, random_interval_size, plot_name, dest)
 
     arguments
         nibp_data
         fs
         random_interval_size uint32 = 3
+        plot_name = ''
+        dest = '' % location where plots are saved to
     end
 
     % unpacking nibp data
@@ -15,7 +17,8 @@ function plot_peak_data(nibp_data, fs, random_interval_size)
     peak_data = apply_findpeaks_2(nibp_data, fs);
 
     % unpacking peak_data
-    chest_beats = peak_data.chest_beats;
+    all_chest_beats = peak_data.all_chest_beats; % all chest beats
+    chest_beats = peak_data.chest_beats; % valid chest beats
     carotid_beats = peak_data.carotid_beats;
     delays = peak_data.delays;
     mean_delay = peak_data.mean_delay;
@@ -76,6 +79,16 @@ function plot_peak_data(nibp_data, fs, random_interval_size)
     xlabel('Time (s)');
     ylabel('Signal Amplitude');
 
+
+     if ~isempty(plot_name)
+        sgt = sgtitle(plot_name, 'Interpreter', 'none');
+        sgt.FontSize = 20;
+        % exportgraphics(gcf, strcat(dest, plot_name,'.png'));
+        exportgraphics(gcf, [dest plot_name '_peak_data.png']);
+    end
+    
+
+
     % quality analysis (TODO: move it to another function)
     percent_of_valid_beats = (length(chest_beats) / length(peak_data.all_chest_beats)) ...
                                 * 100 ;
@@ -86,15 +99,71 @@ function plot_peak_data(nibp_data, fs, random_interval_size)
     fprintf('delay variance: %f s \n', var_delay);
     fprintf('proportion of valid identified beats: %.2f%% \n', percent_of_valid_beats);
 
-    figure
+    % write to file
+    fid = fopen([dest 'results.txt'], "w");
+    fprintf(fid, 'Mean delay: %f s \n', mean_delay);
+    fprintf(fid, 'Median delay: %f s \n', median_delay);
+    fprintf(fid, 'delay std: %f s \n', std_delay);
+    fprintf(fid, 'delay variance: %f s \n', var_delay);
+    fprintf(fid, 'proportion of valid identified beats: %.2f%% \n', percent_of_valid_beats);
+    fclose(fid);
 
-    tiledlayout(2,1);
-
-    nexttile;
+    figure;
     histogram(peak_data.delays);
     title("Distribution of delay across signal");
     xlabel("delay in secs");
     ylabel("Number of beats");
+
+    if ~isempty(plot_name)
+        sgt = sgtitle(plot_name, 'Interpreter', 'none');
+        sgt.FontSize = 20;
+        % exportgraphics(gcf, strcat(dest, plot_name,'.png'));
+        exportgraphics(gcf, [dest plot_name '_peak_data_histogram.png']);
+    end
+
+
+    % plotting invalid chest signals for debugging
+    invalid_chest_beats = setdiff(all_chest_beats, chest_beats);
+    invalid_beats_to_plot = length(invalid_chest_beats);
+    
+    if invalid_beats_to_plot > 0 
+        figure;
+
+        for k = 1:min(6, invalid_beats_to_plot)
+            
+            beat_idx = invalid_chest_beats(k);
+
+            plotting_window = round(0.5*fs); % 500ms on each side
+
+            % setting plotting boundaries
+            left_limit = max(1, beat_idx-plotting_window);
+            right_limit = min(length(chest_signal), beat_idx + plotting_window);
+
+            subplot(3,2,k)
+
+            plot(time(left_limit:right_limit), chest_signal(left_limit:right_limit), 'r', 'LineWidth', 1.5);
+            hold on;
+            plot(time(left_limit:right_limit), carotid_signal(left_limit:right_limit), 'b', 'LineWidth', 1.5);
+            plot(time(beat_idx), chest_signal(beat_idx), 'ro', 'MarkerFaceColor', 'r');
+            hold off;
+
+            title(sprintf('Invalid Chest Beat %d', k));
+            xlabel('Time (s)');
+            ylabel('Signal Amplitude');
+        
+        end
+
+    end
+
+    if ~isempty(plot_name)
+        sgt = sgtitle(plot_name, 'Interpreter', 'none');
+        sgt.FontSize = 20;
+        % exportgraphics(gcf, strcat(dest, plot_name,'.png'));
+        exportgraphics(gcf, [dest plot_name '_invalid_peaks.png']);
+    end
+
+
+
 
 
 end

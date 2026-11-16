@@ -1,3 +1,4 @@
 *.lvm
 *.fig
 /plots
+*_analysis

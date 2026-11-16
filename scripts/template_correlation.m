@@ -1,4 +1,4 @@
-function template_correlation(nibp_data, fs ,peak_data)
+function template_correlation(nibp_data, fs ,peak_data, plot_name, dest)
 
     % unpack signals
     time_axis = nibp_data.Time;
@@ -57,6 +57,10 @@ function template_correlation(nibp_data, fs ,peak_data)
     legend("Extracted beats", "Template (red line)");
     title("Ensemble-averaged template of chest beats");
 
+    sgt = sgtitle(plot_name, 'Interpreter', 'none');
+    sgt.FontSize = 10;
+    exportgraphics(gcf, [dest plot_name '_template.png']);
+
     % normalizing every beat individually, subtracting mean and dividing by std
     % mean becomes 0 and std becomes 1
     normalized_chest_beats = zeros(size(beats));
@@ -96,6 +100,11 @@ function template_correlation(nibp_data, fs ,peak_data)
     ylabel('Count');
     title('Histogram of beat-template correlation values');
 
+    sgt = sgtitle(plot_name, 'Interpreter', 'none');
+    sgt.FontSize = 10;
+    exportgraphics(gcf, [dest plot_name '_correlation_histogram.png']);
+
+
     % plotting a number of the most correlated beats with the template
     [sorted_corr, sorted_idx] = sort(correlation_values, 'descend');
 
@@ -117,6 +126,8 @@ function template_correlation(nibp_data, fs ,peak_data)
     % plotting a number of the least correlated beats with the template
     [sorted_corr, sorted_idx] = sort(correlation_values, "ascend");
 
+    exportgraphics(gcf, [dest plot_name '_high_correlation_beats.png']);
+
     figure;
 
     for k = 1:num_beats_to_plot
@@ -130,6 +141,8 @@ function template_correlation(nibp_data, fs ,peak_data)
         title(sprintf('Beat %d (Correlation: %.2f)', sorted_idx(k), sorted_corr(k)));
     end
     sgtitle("Low correlation beats")
+
+    exportgraphics(gcf, [dest plot_name '_low_correlation_beats.png']);
 
 
 
