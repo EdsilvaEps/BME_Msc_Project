@@ -21,13 +21,33 @@ function [output] = process_nibp_data(input_path, interval, random_interval_size
         "_1_mreg_fa25_uijay_"
     ];
 
+    % load existing results, or creat an empty array
+    global results_file;
+    results_file = "Results.mat"; % TODO: adjust this later for allowing the file to be given
+
+    if isfile(results_file)
+        saved = load(results_file, "Patient");
+
+        if ~isfield(saved, "Patient")
+            error("Results.mat does not contains the correct variables");
+        end
+
+        Patient = saved.Patient;
+
+    else
+        % create a new patient file if not results exist
+        Patient = struct("name", {}, "mode", {});
+    end
+
+
+    % process raw data inputs
     if isfile(input_path)
         disp("single file given, processing...")
 
         output = processing_pipeline(input_path, interval, random_interval_size);
 
     elseif isfolder(input_path)
-        disp("processing whole folder")
+        disp("processing full patient data")
 
         % grab the folder name for processing and plot naming
         [~, folder_name] = fileparts(input_path);
@@ -40,9 +60,30 @@ function [output] = process_nibp_data(input_path, interval, random_interval_size
 
             for i = 1:numel(all_folder_files)
 
+                % if found one of the extensions we support, process it
                 if contains(all_folder_files(i).name, file_types(k))
 
                     fprintf("Found %s files, processing...\n", file_types(k));
+
+                    % since this is a folder, then the whole data of a patient is being processed
+                    % let's add this patient to our aggregated records
+
+                    % look for the patient in records
+                    patient_idx = find(strcmp({Patient.name}, folder_name));
+
+                    if numel(patient_idx) > 1
+                        error("Multiple entries found for patient: %s", folder_name);
+                    elseif isempty(patient_idx)
+                        % Add a new patient.
+                        patient_idx = numel(Patient) + 1;
+                        fprintf("Adding %s\n", folder_name);
+                    else
+                        % Replace this patient's stored modes.
+                        fprintf("Replacing data for %s\n", folder_name);
+                    end
+
+                    Patient(patient_idx).Name = folder_name;
+                    Patient(patient_idx).Mode = get_breathing_mode(file_types(k));
 
                     filename = strcat(folder_name, file_types(k), '1.lvm');
                     disp(filename)
