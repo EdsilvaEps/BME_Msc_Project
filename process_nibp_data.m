@@ -21,8 +21,22 @@ function [output] = process_nibp_data(input_path, interval, random_interval_size
         "_1_mreg_fa25_uijay_"
     ];
 
+    % process raw data inputs
+    if isfile(input_path)
+        disp("single file given, processing...")
+
+        output = processing_pipeline(input_path, interval, random_interval_size);
+        return;
+
+    end
+
+    if ~isfolder(input_path)
+        error("Input path is not a valid file or folder: %s", input_path);
+    end
+
+    disp("processing full patient data")
+
     % load existing results, or creat an empty array
-    global results_file;
     results_file = "Results.mat"; % TODO: adjust this later for allowing the file to be given
 
     if isfile(results_file)
@@ -39,72 +53,79 @@ function [output] = process_nibp_data(input_path, interval, random_interval_size
         Patient = struct("name", {}, "mode", {});
     end
 
+    % grab the folder name for processing and plot naming
+    [~, folder_name] = fileparts(input_path);
 
-    % process raw data inputs
-    if isfile(input_path)
-        disp("single file given, processing...")
+    % building a new record that will be returned after processing
+    patient = struct();
+    patient.name = folder_name;
+    %patient.modes = create_mode_template([]);
+    patient.modes = repmat(create_mode_template(),0,1);
 
-        output = processing_pipeline(input_path, interval, random_interval_size);
+    % list all the .lvm files in this folder
+    all_folder_files = dir(fullfile(input_path));
 
-    elseif isfolder(input_path)
-        disp("processing full patient data")
+    % search the folder for the types of files we have
+    for k = 1:numel(file_types)
 
-        % grab the folder name for processing and plot naming
-        [~, folder_name] = fileparts(input_path);
+        for i = 1:numel(all_folder_files)
 
-        % list all the .lvm files in this folder
-        all_folder_files = dir(fullfile(input_path));
+            % if found one of the extensions we support, process it
+            if contains(all_folder_files(i).name, file_types(k))
 
-        % search the folder for the types of files we have
-        for k = 1:numel(file_types)
+                fprintf("Found %s files, processing...\n", file_types(k));
 
-            for i = 1:numel(all_folder_files)
 
-                % if found one of the extensions we support, process it
-                if contains(all_folder_files(i).name, file_types(k))
+                filename = strcat(folder_name, file_types(k), '1.lvm');
+                full_path = fullfile(input_path, filename);
+                disp(filename);
 
-                    fprintf("Found %s files, processing...\n", file_types(k));
-
-                    % since this is a folder, then the whole data of a patient is being processed
-                    % let's add this patient to our aggregated records
-
-                    % look for the patient in records
-                    patient_idx = find(strcmp({Patient.name}, folder_name));
-
-                    if numel(patient_idx) > 1
-                        error("Multiple entries found for patient: %s", folder_name);
-                    elseif isempty(patient_idx)
-                        % Add a new patient.
-                        patient_idx = numel(Patient) + 1;
-                        fprintf("Adding %s\n", folder_name);
-                    else
-                        % Replace this patient's stored modes.
-                        fprintf("Replacing data for %s\n", folder_name);
-                    end
-
-                    Patient(patient_idx).Name = folder_name;
-                    Patient(patient_idx).Mode = get_breathing_mode(file_types(k));
-
-                    filename = strcat(folder_name, file_types(k), '1.lvm');
-                    disp(filename)
-
-                    processing_pipeline(fullfile(input_path, filename), interval, random_interval_size);
-
-                    % move on to the next file type at first finding
-                    break;
+                if ~isfile(full_path)
+                    continue
                 end
+
+                % get the type of breathing mode
+                mode_name = get_breathing_mode(filename);
+
+                [~, patient] = processing_pipeline(full_path, ...
+                                    interval, ...
+                                    random_interval_size, ...
+                                    patient, ...
+                                    mode_name);
+
+                % move on to the next file type at first finding
+                break;
             end
         end
-
-    else
-        error("not a valid file");
     end
-        
+
+    % aggregate patient data into dataset-wise results file
+    patient_idx = find(strcmp({Patient.name}, folder_name));
+
+    if numel(patient_idx) > 1
+        error('Multiple entries found for patient: %s', folder_name);
+    elseif isempty(patient_idx)
+        patient_idx = numel(Patient) + 1;
+        fprintf('Adding %s\n', folder_name);
+    else
+        fprintf('Replacing data for %s\n', folder_name);
+    end
+
+    Patient(patient_idx).name = patient.name;
+    Patient(patient_idx).modes = patient.modes;
+
+    % Preserve any other variables already stored in Results.mat.
+    if isfile(results_file)
+        save(results_file, "Patient", "-append");
+    else
+        save(results_file, "Patient");
+    end
 
 end
 
-function [output] = processing_pipeline(input_path, interval, random_interval_size) 
+function [output, patient] = processing_pipeline(input_path, interval, random_interval_size, patient, mode_name)
 
+    
      % get base folder
     [folder, ~, ~] = fileparts(input_path); 
 
@@ -165,5 +186,32 @@ function [output] = processing_pipeline(input_path, interval, random_interval_si
                          folder_name);
 
     output = peak_data; % output for analysis
+
+
+    if nargin >= 4 && ~isempty(patient)
+            
+        if nargin < 5 % Patient struct is provided and we should save patient analysis on aggregated file
+            error("Mode name is required when a patient is provided");
+        end
+            
+        % register patient data
+        mode = create_mode_template();
+        mode.name = mode_name;
+        % add the rest of data here
+        mode.mean_PTT = peak_data.mean_delay;
+        mode.std_PTT = peak_data.std_delay;
+        mode.var_PTT = peak_data.var_delay;
+        mode.median_PTT = peak_data.median_delay;
+        mode.missing_beats = length(peak_data.all_chest_beats) - length(peak_data.chest_beats);
+        mode.percent_of_valid_beats = (length(peak_data.chest_beats) / length(peak_data.all_chest_beats)) ...
+                                         * 100 ;
+
+        % TODO: add correlation data
+        mode_idx = numel(patient.modes) + 1;
+        patient.modes(mode_idx) = mode;
+
+    end
+
+
 
 end 

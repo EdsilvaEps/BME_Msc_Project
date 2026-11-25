@@ -59,7 +59,10 @@ function template_correlation(nibp_data, fs ,peak_data, plot_name, dest)
 
     sgt = sgtitle(plot_name, 'Interpreter', 'none');
     sgt.FontSize = 10;
-    exportgraphics(gcf, [dest plot_name '_template.png']);
+
+    export_name = fullfile(char(dest), char(plot_name) + "_template.png");
+    fprintf("saving template plot to %s", export_name);
+    exportgraphics(gcf, export_name);
 
     % normalizing every beat individually, subtracting mean and dividing by std
     % mean becomes 0 and std becomes 1
@@ -102,7 +105,10 @@ function template_correlation(nibp_data, fs ,peak_data, plot_name, dest)
 
     sgt = sgtitle(plot_name, 'Interpreter', 'none');
     sgt.FontSize = 10;
-    exportgraphics(gcf, [dest plot_name '_correlation_histogram.png']);
+
+    export_name = fullfile(char(dest), char(plot_name) + "_correlation_histogram.png");
+    fprintf("saving correlation distribution of beats plot to %s", export_name);
+    exportgraphics(gcf, export_name);
 
 
     % plotting a number of the most correlated beats with the template
@@ -126,7 +132,9 @@ function template_correlation(nibp_data, fs ,peak_data, plot_name, dest)
     % plotting a number of the least correlated beats with the template
     [sorted_corr, sorted_idx] = sort(correlation_values, "ascend");
 
-    exportgraphics(gcf, [dest plot_name '_high_correlation_beats.png']);
+    export_name = fullfile(char(dest), char(plot_name) + "_high_correlation_beats.png");
+    fprintf("saving high correlation beats plot to %s", export_name);
+    exportgraphics(gcf, export_name);
 
     figure;
 
@@ -142,7 +150,9 @@ function template_correlation(nibp_data, fs ,peak_data, plot_name, dest)
     end
     sgtitle("Low correlation beats")
 
-    exportgraphics(gcf, [dest plot_name '_low_correlation_beats.png']);
+    export_name = fullfile(char(dest), char(plot_name) + "_invalid_peaks.png");
+    fprintf("saving low correlation beats plot to %s", export_name);
+    exportgraphics(gcf, export_name);
 
 
 

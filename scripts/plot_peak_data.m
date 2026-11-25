@@ -84,7 +84,9 @@ function plot_peak_data(nibp_data, fs, random_interval_size, plot_name, dest)
         sgt = sgtitle(plot_name, 'Interpreter', 'none');
         sgt.FontSize = 20;
         % exportgraphics(gcf, strcat(dest, plot_name,'.png'));
-        exportgraphics(gcf, [dest plot_name '_peak_data.png']);
+        export_name = fullfile(char(dest), char(plot_name) + "_peak_data.png");
+        fprintf('saving peak data plot to %s \n', export_name);
+        exportgraphics(gcf, export_name);
     end
     
 
@@ -100,7 +102,8 @@ function plot_peak_data(nibp_data, fs, random_interval_size, plot_name, dest)
     fprintf('proportion of valid identified beats: %.2f%% \n', percent_of_valid_beats);
 
     % write to file
-    fid = fopen([dest 'results.txt'], "w");
+    results_dest = fullfile(char(dest), "results.txt");
+    fid = fopen(results_dest, "w");
     fprintf(fid, 'Mean delay: %f s \n', mean_delay);
     fprintf(fid, 'Median delay: %f s \n', median_delay);
     fprintf(fid, 'delay std: %f s \n', std_delay);
@@ -118,7 +121,9 @@ function plot_peak_data(nibp_data, fs, random_interval_size, plot_name, dest)
         sgt = sgtitle(plot_name, 'Interpreter', 'none');
         sgt.FontSize = 20;
         % exportgraphics(gcf, strcat(dest, plot_name,'.png'));
-        exportgraphics(gcf, [dest plot_name '_peak_data_histogram.png']);
+        export_name = fullfile(char(dest), char(plot_name) + "_peak_data_histogram.png");
+        fprintf('saving peak distribution plot to %s \n', export_name);
+        exportgraphics(gcf, export_name);
     end
 
 
@@ -159,7 +164,9 @@ function plot_peak_data(nibp_data, fs, random_interval_size, plot_name, dest)
         sgt = sgtitle(plot_name, 'Interpreter', 'none');
         sgt.FontSize = 20;
         % exportgraphics(gcf, strcat(dest, plot_name,'.png'));
-        exportgraphics(gcf, [dest plot_name '_invalid_peaks.png']);
+        export_name = fullfile(char(dest), char(plot_name) + "_invalid_peaks.png");
+        fprintf('saving invalid peaks plot to %s \n', export_name);
+        exportgraphics(gcf, export_name);
     end
 
 

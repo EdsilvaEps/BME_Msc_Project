@@ -134,6 +134,7 @@ function plot_nibp_data(nibp_data, bphr_data ,transition_points, plot_name, inte
     sgt.FontSize = 20;
 
     % automatically save plot to png
-    %exportgraphics(gcf, strcat(plot_save_dir, plot_name,'.png'));
-    exportgraphics(gcf, [plot_save_dir plot_name '_nibp_data.png']);
+    export_name = fullfile(char(plot_save_dir), char(plot_name) + "_nibp_data.png");
+    fprintf("saving nibp data plot to %s \n", export_name);
+    exportgraphics(gcf, export_name);
 end
