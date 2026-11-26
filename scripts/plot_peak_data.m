@@ -20,7 +20,7 @@ function plot_peak_data(nibp_data, fs, random_interval_size, plot_name, dest)
     all_chest_beats = peak_data.all_chest_beats; % all chest beats
     chest_beats = peak_data.chest_beats; % valid chest beats
     carotid_beats = peak_data.carotid_beats;
-    delays = peak_data.delays;
+    %delays = peak_data.delays;
     mean_delay = peak_data.mean_delay;
     std_delay = peak_data.std_delay;
     var_delay = peak_data.var_delay;
@@ -101,14 +101,19 @@ function plot_peak_data(nibp_data, fs, random_interval_size, plot_name, dest)
     fprintf('delay variance: %f s \n', var_delay);
     fprintf('proportion of valid identified beats: %.2f%% \n', percent_of_valid_beats);
 
-    % write to file
+    % concatenate to file, adding also name of the file being processed
     results_dest = fullfile(char(dest), "results.txt");
-    fid = fopen(results_dest, "w");
+    if ~isfile(results_dest)
+        fid = fopen(results_dest, 'w');
+    else
+        fid = fopen(results_dest, 'a');
+    end
+    fprintf(fid, 'File: %s \n', plot_name);
     fprintf(fid, 'Mean delay: %f s \n', mean_delay);
     fprintf(fid, 'Median delay: %f s \n', median_delay);
     fprintf(fid, 'delay std: %f s \n', std_delay);
     fprintf(fid, 'delay variance: %f s \n', var_delay);
-    fprintf(fid, 'proportion of valid identified beats: %.2f%% \n', percent_of_valid_beats);
+    fprintf(fid, 'proportion of valid identified beats: %.2f%% \n\n', percent_of_valid_beats);
     fclose(fid);
 
     figure;

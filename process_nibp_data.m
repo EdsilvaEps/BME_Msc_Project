@@ -179,11 +179,13 @@ function [output, patient] = processing_pipeline(input_path, interval, random_in
                    folder_name);
 
 
-    template_correlation(nibp_table, ... 
-                         new_fs, ...
-                         peak_data, ...
-                         base_name, ...
-                         folder_name);
+    [template, template_data] = template_correlation(nibp_table, ... 
+                                                    new_fs, ...
+                                                    peak_data, ...
+                                                    base_name, ...
+                                                    folder_name);
+
+    template_matching(nibp_table, new_fs, base_name, folder_name, template);
 
     output = peak_data; % output for analysis
 
@@ -205,6 +207,12 @@ function [output, patient] = processing_pipeline(input_path, interval, random_in
         mode.missing_beats = length(peak_data.all_chest_beats) - length(peak_data.chest_beats);
         mode.percent_of_valid_beats = (length(peak_data.chest_beats) / length(peak_data.all_chest_beats)) ...
                                          * 100 ;
+
+        mode.mean_correlation = template_data.correlation_mean;
+        mode.std_correlation = template_data.correlation_std;
+        mode.median_correlation = template_data.correlation_median;
+        mode.correlation_values = template_data.correlation_values;
+        
 
         % TODO: add correlation data
         mode_idx = numel(patient.modes) + 1;

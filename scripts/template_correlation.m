@@ -1,14 +1,14 @@
-function template_correlation(nibp_data, fs ,peak_data, plot_name, dest)
+function [template, template_data] = template_correlation(nibp_data, fs ,peak_data, plot_name, dest)
 
     % unpack signals
-    time_axis = nibp_data.Time;
-    carotid_signal = nibp_data.Channel_1;
+    %time_axis = nibp_data.Time;
+    %carotid_signal = nibp_data.Channel_1;
     chest_signal = nibp_data.Channel_2;
 
     % unpack peak data
     chest_beats = peak_data.chest_beats;
-    carotid_beats = peak_data.carotid_beats;
-    delays = peak_data.delays;
+    %carotid_beats = peak_data.carotid_beats;
+    %delays = peak_data.delays;
 
     % variables for template creation
     pre_time = 0.150; % time before beat in seconds
@@ -16,7 +16,7 @@ function template_correlation(nibp_data, fs ,peak_data, plot_name, dest)
     number_of_beats_per_template = 10;
     pre_t_sampled = round(pre_time*fs); % time before beat within sampled time
     post_t_sampled = round(post_time*fs); % time after beat, sampled
-    beat_length = pre_t_sampled + post_t_sampled + 1; % absolute lenght of beat
+    %beat_length = pre_t_sampled + post_t_sampled + 1; % absolute lenght of beat
 
 
     % isolate chest beats
@@ -61,7 +61,7 @@ function template_correlation(nibp_data, fs ,peak_data, plot_name, dest)
     sgt.FontSize = 10;
 
     export_name = fullfile(char(dest), char(plot_name) + "_template.png");
-    fprintf("saving template plot to %s", export_name);
+    fprintf('saving template plot to %s \n', export_name);
     exportgraphics(gcf, export_name);
 
     % normalizing every beat individually, subtracting mean and dividing by std
@@ -107,7 +107,7 @@ function template_correlation(nibp_data, fs ,peak_data, plot_name, dest)
     sgt.FontSize = 10;
 
     export_name = fullfile(char(dest), char(plot_name) + "_correlation_histogram.png");
-    fprintf("saving correlation distribution of beats plot to %s", export_name);
+    fprintf('saving correlation distribution of beats plot to %s \n', export_name);
     exportgraphics(gcf, export_name);
 
 
@@ -133,7 +133,7 @@ function template_correlation(nibp_data, fs ,peak_data, plot_name, dest)
     [sorted_corr, sorted_idx] = sort(correlation_values, "ascend");
 
     export_name = fullfile(char(dest), char(plot_name) + "_high_correlation_beats.png");
-    fprintf("saving high correlation beats plot to %s", export_name);
+    fprintf('saving high correlation beats plot to %s \n', export_name);
     exportgraphics(gcf, export_name);
 
     figure;
@@ -151,9 +151,17 @@ function template_correlation(nibp_data, fs ,peak_data, plot_name, dest)
     sgtitle("Low correlation beats")
 
     export_name = fullfile(char(dest), char(plot_name) + "_invalid_peaks.png");
-    fprintf("saving low correlation beats plot to %s", export_name);
+    fprintf('saving low correlation beats plot to %s \n', export_name);
     exportgraphics(gcf, export_name);
 
+    % bundle findings on a struct
+    template_data = struct();
+    template_data.correlation_values = correlation_values; % correlations for all the identified beats
+    template_data.correlation_mean = mean(correlation_values); % mean correlation value
+    template_data.correlation_std = std(correlation_values); % std of correlation values
+    template_data.correlation_median = median(correlation_values); % median of correlation values
+
+    template = normalized_template; % output also the template for filter matching
 
 
 end

@@ -122,7 +122,7 @@ function peak_data = apply_findpeaks_2(nibp_data, fs, interval)
 
             % carotid peak should not be over 200ms away from chest peak
             if(end_idx - start_idx) > round(0.2*fs)
-                i = end_idx - start_idx;
+                %i = end_idx - start_idx;
                 %fprintf("Interval too large: %f s \n", i/fs);
                 break
             end
@@ -164,10 +164,4 @@ function peak_data = apply_findpeaks_2(nibp_data, fs, interval)
     peak_data.std_delay = std(delays);
     peak_data.var_delay = var(delays);
     peak_data.median_delay = median(delays);
-
-    %disp("apply_findpeaks__2 info: ");
-    %delays
-    %fprintf('Mean delay: %f s \n', mean(delays));
-    %fprintf('delay std: %f s \n', std(delays));
-    %fprintf('delay variance: %f s \n', var(delays));
 end
